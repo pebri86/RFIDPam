@@ -26,7 +26,7 @@ files according to the GNU General Public License (GPL) version 2 or 3.
 //#if defined(LINUX)
 #include <usb.h>			// this is libusb, see http://libusb.sourceforge.net/ 
 //#else
-//   #include <lusb0_usb.h>		// this is libusb, see http://libusb.sourceforge.net/ 
+//   #include <lusb0_usb.h>		// this is libusb, see http://libusb.sourceforge.net/
 //#endif
 #include <stdio.h>
 

@@ -2,7 +2,7 @@
 	Higher level servo driving library for Little Wire.
 
 	Copyright (C) <2013> ihsan Kehribar <ihsan@kehribar.me>
-	
+
 	Permission is hereby granted, free of charge, to any person obtaining a copy of
 	this software and associated documentation files (the "Software"), to deal in
 	the Software without restriction, including without limitation the rights to
@@ -38,9 +38,10 @@ const float RANGE = 180.0; // in degrees
 ********************************************************************************/
 void servo_init(littleWire* lwHandle)
 {
-	pwm_init(lwHandle); // Initialize the PWM hardware.
-	pinMode(lwHandle,PWMA,OUTPUT); pinMode(lwHandle,PWMB,OUTPUT); // Set PWM pins output.
-	pwm_updatePrescaler(lwHandle,1024); // Make sure the PWM prescaler is set correctly.
+    pwm_init(lwHandle); // Initialize the PWM hardware.
+    pinMode(lwHandle,PWMA,OUTPUT);
+    pinMode(lwHandle,PWMB,OUTPUT); // Set PWM pins output.
+    pwm_updatePrescaler(lwHandle,1024); // Make sure the PWM prescaler is set correctly.
 }
 /*******************************************************************************/
 
@@ -51,8 +52,8 @@ void servo_init(littleWire* lwHandle)
 ********************************************************************************/
 void servo_updateLocation(littleWire* lwHandle,unsigned char locationChannelA,unsigned char locationChannelB)
 {
-	locationChannelA=(((locationChannelA/RANGE)*(MAX_LIMIT-MIN_LIMIT))+MIN_LIMIT)/STEP_SIZE;
-	locationChannelB=(((locationChannelB/RANGE)*(MAX_LIMIT-MIN_LIMIT))+MIN_LIMIT)/STEP_SIZE;
-	pwm_updateCompare(lwHandle,locationChannelA,locationChannelB);
+    locationChannelA=(((locationChannelA/RANGE)*(MAX_LIMIT-MIN_LIMIT))+MIN_LIMIT)/STEP_SIZE;
+    locationChannelB=(((locationChannelB/RANGE)*(MAX_LIMIT-MIN_LIMIT))+MIN_LIMIT)/STEP_SIZE;
+    pwm_updateCompare(lwHandle,locationChannelA,locationChannelB);
 }
 /*******************************************************************************/

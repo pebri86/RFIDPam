@@ -376,9 +376,9 @@ void LCDshowLogo(littleWire *lwHandle)
 {
     uint32_t i;
     for (i = 0; i < _width * _height / 8; i++  )
-        {
-            pcd8544_buffer[i] = pi_logo[i];
-        }
+    {
+        pcd8544_buffer[i] = pi_logo[i];
+    }
     LCDdisplay(lwHandle);
 }
 
@@ -443,15 +443,15 @@ void LCDdrawbitmap(uint8_t x, uint8_t y,const uint8_t *bitmap, uint8_t w, uint8_
 {
     uint8_t j,i;
     for ( j=0; j<h; j++)
+    {
+        for ( i=0; i<w; i++ )
         {
-            for ( i=0; i<w; i++ )
-                {
-                    if (*(bitmap + i + (j/8)*w) & _BV(j%8))
-                        {
-                            my_setpixel(x+i, y+j, color);
-                        }
-                }
+            if (*(bitmap + i + (j/8)*w) & _BV(j%8))
+            {
+                my_setpixel(x+i, y+j, color);
+            }
         }
+    }
     updateBoundingBox(x, y, x+w, y+h);
 }
 
@@ -460,9 +460,9 @@ void LCDdrawstring(uint8_t x, uint8_t y, char *c)
     cursor_x = x;
     cursor_y = y;
     while (*c)
-        {
-            LCDwrite(*c++);
-        }
+    {
+        LCDwrite(*c++);
+    }
 }
 
 void LCDdrawstring_P(uint8_t x, uint8_t y, const char *str)
@@ -470,12 +470,12 @@ void LCDdrawstring_P(uint8_t x, uint8_t y, const char *str)
     cursor_x = x;
     cursor_y = y;
     while (1)
-        {
-            char c = (*str++);
-            if (! c)
-                return;
-            LCDwrite(c);
-        }
+    {
+        char c = (*str++);
+        if (! c)
+            return;
+        LCDwrite(c);
+    }
 }
 
 void LCDdrawchar(uint8_t x, uint8_t y, unsigned char c, uint8_t color, uint8_t bg, uint8_t size)
@@ -490,48 +490,48 @@ void LCDdrawchar(uint8_t x, uint8_t y, unsigned char c, uint8_t color, uint8_t b
     if(!_cp437 && (c >= 176)) c++; // Handle 'classic' charset behavior
 
     for(i=0; i<6; i++ )
+    {
+        uint8_t line;
+        if(i < 5) line = *(font+(c*5)+i);
+        else      line = 0x0;
+        for(j=0; j<8; j++, line >>= 1)
         {
-            uint8_t line;
-            if(i < 5) line = *(font+(c*5)+i);
-            else      line = 0x0;
-            for(j=0; j<8; j++, line >>= 1)
-                {
-                    if(line & 0x1)
-                        {
-                            if(size == 1) my_setpixel(x+i, y+j, color);
-                            else          LCDfillrect(x+(i*size), y+(j*size), size, size, color);
-                        }
-                    else if(bg != color)
-                        {
-                            if(size == 1) my_setpixel(x+i, y+j, bg);
-                            else          LCDfillrect(x+i*size, y+j*size, size, size, bg);
-                        }
-                }
+            if(line & 0x1)
+            {
+                if(size == 1) my_setpixel(x+i, y+j, color);
+                else          LCDfillrect(x+(i*size), y+(j*size), size, size, color);
+            }
+            else if(bg != color)
+            {
+                if(size == 1) my_setpixel(x+i, y+j, bg);
+                else          LCDfillrect(x+i*size, y+j*size, size, size, bg);
+            }
         }
+    }
     updateBoundingBox(x, y, x+6*size, y + 8*size);
 }
 
 void LCDwrite(uint8_t c)
 {
     if(c == '\n')
-        {
-            cursor_y += textsize*8;
-            cursor_x  = 0;
-        }
+    {
+        cursor_y += textsize*8;
+        cursor_x  = 0;
+    }
     else if(c == '\r')
-        {
-            // skip em
-        }
+    {
+        // skip em
+    }
     else
+    {
+        if(wrap && ((cursor_x + textsize * 6) >= _width))   // Heading off edge?
         {
-            if(wrap && ((cursor_x + textsize * 6) >= _width))   // Heading off edge?
-                {
-                    cursor_x  = 0;            // Reset x to zero
-                    cursor_y += textsize * 8; // Advance y one line
-                }
-            LCDdrawchar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
-            cursor_x += textsize * 6;
+            cursor_x  = 0;            // Reset x to zero
+            cursor_y += textsize * 8; // Advance y one line
         }
+        LCDdrawchar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
+        cursor_x += textsize * 6;
+    }
 }
 
 void LCDsetCursor(uint8_t x, uint8_t y)
@@ -556,16 +556,16 @@ void LCDdrawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color)
 {
     uint8_t steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep)
-        {
-            swap(x0, y0);
-            swap(x1, y1);
-        }
+    {
+        swap(x0, y0);
+        swap(x1, y1);
+    }
 
     if (x0 > x1)
-        {
-            swap(x0, x1);
-            swap(y0, y1);
-        }
+    {
+        swap(x0, x1);
+        swap(y0, y1);
+    }
 
     // much faster to put the test here, since we've already sorted the points
     updateBoundingBox(x0, y0, x1, y1);
@@ -578,31 +578,31 @@ void LCDdrawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color)
     int8_t ystep;
 
     if (y0 < y1)
-        {
-            ystep = 1;
-        }
+    {
+        ystep = 1;
+    }
     else
-        {
-            ystep = -1;
-        }
+    {
+        ystep = -1;
+    }
 
     for (; x0<=x1; x0++)
+    {
+        if (steep)
         {
-            if (steep)
-                {
-                    my_setpixel(y0, x0, color);
-                }
-            else
-                {
-                    my_setpixel(x0, y0, color);
-                }
-            err -= dy;
-            if (err < 0)
-                {
-                    y0 += ystep;
-                    err += dx;
-                }
+            my_setpixel(y0, x0, color);
         }
+        else
+        {
+            my_setpixel(x0, y0, color);
+        }
+        err -= dy;
+        if (err < 0)
+        {
+            y0 += ystep;
+            err += dx;
+        }
+    }
 }
 
 void LCDdrawFastVLine(uint8_t x, uint8_t y, uint8_t h, uint8_t color)
@@ -623,12 +623,12 @@ void LCDfillrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h,  uint8_t color)
     // stupidest version - just pixels - but fast with internal buffer!
     uint8_t i,j;
     for ( i=x; i<x+w; i++)
+    {
+        for ( j=y; j<y+h; j++)
         {
-            for ( j=y; j<y+h; j++)
-                {
-                    my_setpixel(i, j, color);
-                }
+            my_setpixel(i, j, color);
         }
+    }
     updateBoundingBox(x, y, x+w, y+h);
 }
 
@@ -660,28 +660,28 @@ void LCDdrawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color)
     my_setpixel(x0-r, y0, color);
 
     while (x<y)
+    {
+        if (f >= 0)
         {
-            if (f >= 0)
-                {
-                    y--;
-                    ddF_y += 2;
-                    f += ddF_y;
-                }
-            x++;
-            ddF_x += 2;
-            f += ddF_x;
-
-            my_setpixel(x0 + x, y0 + y, color);
-            my_setpixel(x0 - x, y0 + y, color);
-            my_setpixel(x0 + x, y0 - y, color);
-            my_setpixel(x0 - x, y0 - y, color);
-
-            my_setpixel(x0 + y, y0 + x, color);
-            my_setpixel(x0 - y, y0 + x, color);
-            my_setpixel(x0 + y, y0 - x, color);
-            my_setpixel(x0 - y, y0 - x, color);
-
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
         }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+
+        my_setpixel(x0 + x, y0 + y, color);
+        my_setpixel(x0 - x, y0 + y, color);
+        my_setpixel(x0 + x, y0 - y, color);
+        my_setpixel(x0 - x, y0 - y, color);
+
+        my_setpixel(x0 + y, y0 + x, color);
+        my_setpixel(x0 - y, y0 + x, color);
+        my_setpixel(x0 + y, y0 - x, color);
+        my_setpixel(x0 - y, y0 - x, color);
+
+    }
 }
 
 void LCDfillcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color)
@@ -695,33 +695,33 @@ void LCDfillcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color)
     uint8_t i;
 
     for (i=y0-r; i<=y0+r; i++)
-        {
-            my_setpixel(x0, i, color);
-        }
+    {
+        my_setpixel(x0, i, color);
+    }
 
     while (x<y)
+    {
+        if (f >= 0)
         {
-            if (f >= 0)
-                {
-                    y--;
-                    ddF_y += 2;
-                    f += ddF_y;
-                }
-            x++;
-            ddF_x += 2;
-            f += ddF_x;
-
-            for ( i=y0-y; i<=y0+y; i++)
-                {
-                    my_setpixel(x0+x, i, color);
-                    my_setpixel(x0-x, i, color);
-                }
-            for ( i=y0-x; i<=y0+x; i++)
-                {
-                    my_setpixel(x0+y, i, color);
-                    my_setpixel(x0-y, i, color);
-                }
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
         }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+
+        for ( i=y0-y; i<=y0+y; i++)
+        {
+            my_setpixel(x0+x, i, color);
+            my_setpixel(x0-x, i, color);
+        }
+        for ( i=y0-x; i<=y0+x; i++)
+        {
+            my_setpixel(x0+y, i, color);
+            my_setpixel(x0-y, i, color);
+        }
+    }
 }
 
 void LCDdrawCircleHelper( uint8_t x0, uint8_t y0, uint8_t r, uint8_t cornername, uint8_t color)
@@ -735,37 +735,37 @@ void LCDdrawCircleHelper( uint8_t x0, uint8_t y0, uint8_t r, uint8_t cornername,
     uint8_t y     = r;
 
     while (x<y)
+    {
+        if (f >= 0)
         {
-            if (f >= 0)
-                {
-                    y--;
-                    ddF_y += 2;
-                    f     += ddF_y;
-                }
-            x++;
-            ddF_x += 2;
-            f     += ddF_x;
-            if (cornername & 0x4)
-                {
-                    my_setpixel(x0 + x, y0 + y, color);
-                    my_setpixel(x0 + y, y0 + x, color);
-                }
-            if (cornername & 0x2)
-                {
-                    my_setpixel(x0 + x, y0 - y, color);
-                    my_setpixel(x0 + y, y0 - x, color);
-                }
-            if (cornername & 0x8)
-                {
-                    my_setpixel(x0 - y, y0 + x, color);
-                    my_setpixel(x0 - x, y0 + y, color);
-                }
-            if (cornername & 0x1)
-                {
-                    my_setpixel(x0 - y, y0 - x, color);
-                    my_setpixel(x0 - x, y0 - y, color);
-                }
+            y--;
+            ddF_y += 2;
+            f     += ddF_y;
         }
+        x++;
+        ddF_x += 2;
+        f     += ddF_x;
+        if (cornername & 0x4)
+        {
+            my_setpixel(x0 + x, y0 + y, color);
+            my_setpixel(x0 + y, y0 + x, color);
+        }
+        if (cornername & 0x2)
+        {
+            my_setpixel(x0 + x, y0 - y, color);
+            my_setpixel(x0 + y, y0 - x, color);
+        }
+        if (cornername & 0x8)
+        {
+            my_setpixel(x0 - y, y0 + x, color);
+            my_setpixel(x0 - x, y0 + y, color);
+        }
+        if (cornername & 0x1)
+        {
+            my_setpixel(x0 - y, y0 - x, color);
+            my_setpixel(x0 - x, y0 - y, color);
+        }
+    }
 }
 
 // Fill a rounded rectangle
@@ -791,28 +791,28 @@ void LCDfillCircleHelper(uint8_t x0, uint8_t y0, uint8_t r, uint8_t cornername, 
     uint8_t y     = r;
 
     while (x<y)
+    {
+        if (f >= 0)
         {
-            if (f >= 0)
-                {
-                    y--;
-                    ddF_y += 2;
-                    f     += ddF_y;
-                }
-            x++;
-            ddF_x += 2;
-            f     += ddF_x;
-
-            if (cornername & 0x1)
-                {
-                    LCDdrawFastVLine(x0+x, y0-y, 2*y+1+delta, color);
-                    LCDdrawFastVLine(x0+y, y0-x, 2*x+1+delta, color);
-                }
-            if (cornername & 0x2)
-                {
-                    LCDdrawFastVLine(x0-x, y0-y, 2*y+1+delta, color);
-                    LCDdrawFastVLine(x0-y, y0-x, 2*x+1+delta, color);
-                }
+            y--;
+            ddF_y += 2;
+            f     += ddF_y;
         }
+        x++;
+        ddF_x += 2;
+        f     += ddF_x;
+
+        if (cornername & 0x1)
+        {
+            LCDdrawFastVLine(x0+x, y0-y, 2*y+1+delta, color);
+            LCDdrawFastVLine(x0+y, y0-x, 2*x+1+delta, color);
+        }
+        if (cornername & 0x2)
+        {
+            LCDdrawFastVLine(x0-x, y0-y, 2*y+1+delta, color);
+            LCDdrawFastVLine(x0-y, y0-x, 2*x+1+delta, color);
+        }
+    }
 }
 
 // Draw a rounded rectangle
@@ -874,9 +874,9 @@ void LCDcommand(littleWire *lwHandle, uint8_t c)
 void LCDsetContrast(littleWire *lwHandle, uint8_t val)
 {
     if (val > 0x7f)
-        {
-            val = 0x7f;
-        }
+    {
+        val = 0x7f;
+    }
     LCDcommand(lwHandle, PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
     LCDcommand(lwHandle, PCD8544_SETVOP | val);
     LCDcommand(lwHandle, PCD8544_FUNCTIONSET);
@@ -887,48 +887,48 @@ void LCDdisplay(littleWire *lwHandle)
     uint8_t col, maxcol, p;
 
     for(p = 0; p < 6; p++)
+    {
+#ifdef enablePartialUpdate
+        // check if this page is part of update
+        if ( yUpdateMin >= ((p+1)*8) )
         {
-#ifdef enablePartialUpdate
-            // check if this page is part of update
-            if ( yUpdateMin >= ((p+1)*8) )
-                {
-                    continue;   // nope, skip it!
-                }
-            if (yUpdateMax < p*8)
-                {
-                    break;
-                }
-#endif
-
-            LCDcommand(lwHandle, PCD8544_SETYADDR | p);
-
-
-#ifdef enablePartialUpdate
-            col = xUpdateMin;
-            maxcol = xUpdateMax;
-#else
-            // start at the beginning of the row
-            col = 0;
-            maxcol = _width-1;
-#endif
-
-            LCDcommand(lwHandle, PCD8544_SETXADDR | col);
-            unsigned char buff[4];
-            uint8_t i,len;
-            digitalWrite(lwHandle,_dc, HIGH);
-            while (col <= maxcol)
-                {
-                    for(i=0; i<4; i++)
-                        {
-                            buff[i] = pcd8544_buffer[(_width*p)+col];
-                            len = i+1;
-                            col++;
-                            if(col >= maxcol)
-                                break;
-                        }
-                    spi_sendMessage(lwHandle, buff, receiveBuffer, len, MANUAL_CS);
-                }
+            continue;   // nope, skip it!
         }
+        if (yUpdateMax < p*8)
+        {
+            break;
+        }
+#endif
+
+        LCDcommand(lwHandle, PCD8544_SETYADDR | p);
+
+
+#ifdef enablePartialUpdate
+        col = xUpdateMin;
+        maxcol = xUpdateMax;
+#else
+        // start at the beginning of the row
+        col = 0;
+        maxcol = _width-1;
+#endif
+
+        LCDcommand(lwHandle, PCD8544_SETXADDR | col);
+        unsigned char buff[4];
+        uint8_t i,len;
+        digitalWrite(lwHandle,_dc, HIGH);
+        while (col <= maxcol)
+        {
+            for(i=0; i<4; i++)
+            {
+                buff[i] = pcd8544_buffer[(_width*p)+col];
+                len = i+1;
+                col++;
+                if(col >= maxcol)
+                    break;
+            }
+            spi_sendMessage(lwHandle, buff, receiveBuffer, len, MANUAL_CS);
+        }
+    }
 
     LCDcommand(lwHandle, PCD8544_SETYADDR );  // no idea why this is necessary but it is to finish the last byte?
 #ifdef enablePartialUpdate
@@ -978,31 +978,31 @@ void LCDfillTriangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t x2,
 
     // Sort coordinates by Y order (y2 >= y1 >= y0)
     if (y0 > y1)
-        {
-            swap(y0, y1);
-            swap(x0, x1);
-        }
+    {
+        swap(y0, y1);
+        swap(x0, x1);
+    }
     if (y1 > y2)
-        {
-            swap(y2, y1);
-            swap(x2, x1);
-        }
+    {
+        swap(y2, y1);
+        swap(x2, x1);
+    }
     if (y0 > y1)
-        {
-            swap(y0, y1);
-            swap(x0, x1);
-        }
+    {
+        swap(y0, y1);
+        swap(x0, x1);
+    }
 
     if(y0 == y2)   // Handle awkward all-on-same-line case as its own thing
-        {
-            a = b = x0;
-            if(x1 < a)      a = x1;
-            else if(x1 > b) b = x1;
-            if(x2 < a)      a = x2;
-            else if(x2 > b) b = x2;
-            LCDdrawFastHLine(a, y0, b-a+1, color);
-            return;
-        }
+    {
+        a = b = x0;
+        if(x1 < a)      a = x1;
+        else if(x1 > b) b = x1;
+        if(x2 < a)      a = x2;
+        else if(x2 > b) b = x2;
+        LCDdrawFastHLine(a, y0, b-a+1, color);
+        return;
+    }
 
     int16_t
     dx01 = x1 - x0,
@@ -1025,36 +1025,36 @@ void LCDfillTriangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t x2,
     else         last = y1-1; // Skip it
 
     for(y=y0; y<=last; y++)
-        {
-            a   = x0 + sa / dy01;
-            b   = x0 + sb / dy02;
-            sa += dx01;
-            sb += dx02;
-            /* longhand:
-            a = x0 + (x1 - x0) * (y - y0) / (y1 - y0);
-            b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-            */
-            if(a > b) swap(a,b);
-            LCDdrawFastHLine(a, y, b-a+1, color);
-        }
+    {
+        a   = x0 + sa / dy01;
+        b   = x0 + sb / dy02;
+        sa += dx01;
+        sb += dx02;
+        /* longhand:
+        a = x0 + (x1 - x0) * (y - y0) / (y1 - y0);
+        b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
+        */
+        if(a > b) swap(a,b);
+        LCDdrawFastHLine(a, y, b-a+1, color);
+    }
 
     // For lower part of triangle, find scanline crossings for segments
     // 0-2 and 1-2.  This loop is skipped if y1=y2.
     sa = dx12 * (y - y1);
     sb = dx02 * (y - y0);
     for(; y<=y2; y++)
-        {
-            a   = x1 + sa / dy12;
-            b   = x0 + sb / dy02;
-            sa += dx12;
-            sb += dx02;
-            /* longhand:
-            a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
-            b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-            */
-            if(a > b) swap(a,b);
-            LCDdrawFastHLine(a, y, b-a+1, color);
-        }
+    {
+        a   = x1 + sa / dy12;
+        b   = x0 + sb / dy02;
+        sa += dx12;
+        sb += dx02;
+        /* longhand:
+        a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
+        b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
+        */
+        if(a > b) swap(a,b);
+        LCDdrawFastHLine(a, y, b-a+1, color);
+    }
 }
 
 void LCDsetTextWrap(boolean w)

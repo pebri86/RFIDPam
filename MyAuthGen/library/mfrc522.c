@@ -45,9 +45,9 @@ void mfrc522_init(littleWire *lwHandle)
     // antenna on
     byte = mfrc522_read(lwHandle, TxControlReg);
     if(!(byte&0x03))
-        {
-            mfrc522_write(lwHandle, TxControlReg,byte|0x03);
-        }
+    {
+        mfrc522_write(lwHandle, TxControlReg,byte|0x03);
+    }
 }
 
 /*
@@ -112,9 +112,9 @@ uint8_t	mfrc522_request(littleWire *lwHandle, uint8_t req_mode, uint8_t * tag_ty
     status = mfrc522_to_card(lwHandle,Transceive_CMD, tag_type, 1, tag_type, &backBits);
 
     if ((status != CARD_FOUND) || (backBits != 0x10))
-        {
-            status = ERROR;
-        }
+    {
+        status = ERROR;
+    }
 
     return status;
 }
@@ -133,22 +133,22 @@ uint8_t mfrc522_to_card(littleWire *lwHandle, uint8_t cmd, uint8_t *send_data, u
     uint32_t i;
 
     switch (cmd)
-        {
-        case MFAuthent_CMD:		//Certification cards close
-        {
-            irqEn = 0x12;
-            waitIRq = 0x10;
-            break;
-        }
-        case Transceive_CMD:	//Transmit FIFO data
-        {
-            irqEn = 0x77;
-            waitIRq = 0x30;
-            break;
-        }
-        default:
-            break;
-        }
+    {
+    case MFAuthent_CMD:		//Certification cards close
+    {
+        irqEn = 0x12;
+        waitIRq = 0x10;
+        break;
+    }
+    case Transceive_CMD:	//Transmit FIFO data
+    {
+        irqEn = 0x77;
+        waitIRq = 0x30;
+        break;
+    }
+    default:
+        break;
+    }
 
     //mfrc522_write(ComIEnReg, irqEn|0x80);	//Interrupt request
     n=mfrc522_read(lwHandle,ComIrqReg);
@@ -160,77 +160,77 @@ uint8_t mfrc522_to_card(littleWire *lwHandle, uint8_t cmd, uint8_t *send_data, u
 
     //Writing data to the FIFO
     for (i=0; i<send_data_len; i++)
-        {
-            mfrc522_write(lwHandle,FIFODataReg, send_data[i]);
-        }
+    {
+        mfrc522_write(lwHandle,FIFODataReg, send_data[i]);
+    }
 
     //Execute the cmd
     mfrc522_write(lwHandle,CommandReg, cmd);
     if (cmd == Transceive_CMD)
-        {
-            n=mfrc522_read(lwHandle,BitFramingReg);
-            mfrc522_write(lwHandle,BitFramingReg,n|0x80);
-        }
+    {
+        n=mfrc522_read(lwHandle,BitFramingReg);
+        mfrc522_write(lwHandle,BitFramingReg,n|0x80);
+    }
 
     //Waiting to receive data to complete
     i = 2000;	//i according to the clock frequency adjustment, the operator M1 card maximum waiting time 25ms???
     do
-        {
-            //CommIrqReg[7..0]
-            //Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
-            n = mfrc522_read(lwHandle,ComIrqReg);
-            i--;
-        }
+    {
+        //CommIrqReg[7..0]
+        //Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
+        n = mfrc522_read(lwHandle,ComIrqReg);
+        i--;
+    }
     while ((i!=0) && !(n&0x01) && !(n&waitIRq));
 
     tmp=mfrc522_read(lwHandle,BitFramingReg);
     mfrc522_write(lwHandle,BitFramingReg,tmp&(~0x80));
 
     if (i != 0)
+    {
+        if(!(mfrc522_read(lwHandle,ErrorReg) & 0x1B))	//BufferOvfl Collerr CRCErr ProtecolErr
         {
-            if(!(mfrc522_read(lwHandle,ErrorReg) & 0x1B))	//BufferOvfl Collerr CRCErr ProtecolErr
+            status = CARD_FOUND;
+            if (n & irqEn & 0x01)
+            {
+                status = CARD_NOT_FOUND;			//??
+            }
+
+            if (cmd == Transceive_CMD)
+            {
+                n = mfrc522_read(lwHandle,FIFOLevelReg);
+                lastBits = mfrc522_read(lwHandle,ControlReg) & 0x07;
+                if (lastBits)
                 {
-                    status = CARD_FOUND;
-                    if (n & irqEn & 0x01)
-                        {
-                            status = CARD_NOT_FOUND;			//??
-                        }
-
-                    if (cmd == Transceive_CMD)
-                        {
-                            n = mfrc522_read(lwHandle,FIFOLevelReg);
-                            lastBits = mfrc522_read(lwHandle,ControlReg) & 0x07;
-                            if (lastBits)
-                                {
-                                    *back_data_len = (uint32_t)(n-1)*8 + (uint32_t)lastBits;
-                                }
-                            else
-                                {
-                                    *back_data_len = (uint32_t)n*8;
-                                }
-
-                            if (n == 0)
-                                {
-                                    n = 1;
-                                }
-                            if (n > MAX_LEN)
-                                {
-                                    n = MAX_LEN;
-                                }
-
-                            //Reading the received data in FIFO
-                            for (i=0; i<n; i++)
-                                {
-                                    back_data[i] = mfrc522_read(lwHandle,FIFODataReg);
-                                }
-                        }
+                    *back_data_len = (uint32_t)(n-1)*8 + (uint32_t)lastBits;
                 }
-            else
+                else
                 {
-                    status = ERROR;
+                    *back_data_len = (uint32_t)n*8;
                 }
 
+                if (n == 0)
+                {
+                    n = 1;
+                }
+                if (n > MAX_LEN)
+                {
+                    n = MAX_LEN;
+                }
+
+                //Reading the received data in FIFO
+                for (i=0; i<n; i++)
+                {
+                    back_data[i] = mfrc522_read(lwHandle,FIFODataReg);
+                }
+            }
         }
+        else
+        {
+            status = ERROR;
+        }
+
+    }
 
     //SetBitMask(ControlReg,0x80);           //timer stops
     //mfrc522_write(cmdReg, PCD_IDLE);
@@ -255,17 +255,17 @@ uint8_t mfrc522_get_card_serial(littleWire *lwHandle, uint8_t * serial_out)
     status = mfrc522_to_card(lwHandle,Transceive_CMD, serial_out, 2, serial_out, &unLen);
 
     if (status == CARD_FOUND)
+    {
+        //Check card serial number
+        for (i=0; i<4; i++)
         {
-            //Check card serial number
-            for (i=0; i<4; i++)
-                {
-                    serNumCheck ^= serial_out[i];
-                }
-            if (serNumCheck != serial_out[i])
-                {
-                    status = ERROR;
-                }
+            serNumCheck ^= serial_out[i];
         }
+        if (serNumCheck != serial_out[i])
+        {
+            status = ERROR;
+        }
+    }
     return status;
 }
 
@@ -302,18 +302,18 @@ void mfrc522_calculateCRC(littleWire *lwHandle, uint8_t *pIndata, uint8_t len, u
 
     //Escribir datos en el FIFO
     for (i=0; i<len; i++)
-        {
-            mfrc522_write(lwHandle,FIFODataReg, *(pIndata+i));
-        }
+    {
+        mfrc522_write(lwHandle,FIFODataReg, *(pIndata+i));
+    }
     mfrc522_write(lwHandle,CommandReg, PCD_CALCCRC);
 
     // Esperar a la finalización de cálculo del CRC
     i = 0xFF;
     do
-        {
-            n = mfrc522_read(lwHandle,DivIrqReg);
-            i--;
-        }
+    {
+        n = mfrc522_read(lwHandle,DivIrqReg);
+        i--;
+    }
     while ((i!=0) && !(n&0x04));			//CRCIrq = 1
 
     //Lea el cálculo de CRC
@@ -357,14 +357,14 @@ uint8_t mfrc522_is_card(littleWire *lwHandle, uint16_t *card_type)
     uint8_t buff_data[MAX_LEN],
             status = mfrc522_request(lwHandle,PICC_REQIDL,buff_data);
     if(status == CARD_FOUND)
-        {
-            *card_type = (buff_data[0]<<8)+buff_data[1];
-            return 1;
-        }
+    {
+        *card_type = (buff_data[0]<<8)+buff_data[1];
+        return 1;
+    }
     else
-        {
-            return 0;
-        }
+    {
+        return 0;
+    }
 }
 
 /*
@@ -389,20 +389,20 @@ uint8_t mfrc522_auth(littleWire *lwHandle, uint8_t authMode, uint8_t BlockAddr, 
     buff[0] = authMode;
     buff[1] = BlockAddr;
     for (i=0; i<6; i++)
-        {
-            buff[i+2] = *(Sectorkey+i);
-        }
+    {
+        buff[i+2] = *(Sectorkey+i);
+    }
     for (i=0; i<4; i++)
-        {
-            buff[i+8] = *(serNum+i);
-        }
+    {
+        buff[i+8] = *(serNum+i);
+    }
     status = mfrc522_to_card(lwHandle,PCD_AUTHENT, buff, 12, buff, &recvBits);
     i = mfrc522_read(lwHandle,Status2Reg);
 
     if ((status != CARD_FOUND) || (!(i & 0x08)))
-        {
-            status = ERROR;
-        }
+    {
+        status = ERROR;
+    }
 
     return status;
 }
@@ -429,27 +429,27 @@ uint8_t mfrc522_write_block(littleWire *lwHandle, uint8_t blockAddr, uint8_t *wr
     //printf("w1 = %d\t%d\t%.2X\n", status, recvBits, buff[0]);
 
     if ((status != CARD_FOUND) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
+    {
+        status = ERROR;
+    }
+
+    if (status == CARD_FOUND)
+    {
+        for (i=0; i<16; i++)		//?FIFO?16Byte??
+        {
+            buff[i] = *(writeData+i);
+        }
+        mfrc522_calculateCRC(lwHandle,buff, 16, &buff[16]);
+        status = mfrc522_to_card(lwHandle,PCD_TRANSCEIVE, buff, 18, buff, &recvBits);
+
+        //cek
+        //printf("w2 = %d\t%d\t%.2X\n", status, recvBits, buff[0]);
+
+        if ((status != CARD_FOUND) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
         {
             status = ERROR;
         }
-
-    if (status == CARD_FOUND)
-        {
-            for (i=0; i<16; i++)		//?FIFO?16Byte??
-                {
-                    buff[i] = *(writeData+i);
-                }
-            mfrc522_calculateCRC(lwHandle,buff, 16, &buff[16]);
-            status = mfrc522_to_card(lwHandle,PCD_TRANSCEIVE, buff, 18, buff, &recvBits);
-
-            //cek
-            //printf("w2 = %d\t%d\t%.2X\n", status, recvBits, buff[0]);
-
-            if ((status != CARD_FOUND) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
-                {
-                    status = ERROR;
-                }
-        }
+    }
 
     return status;
 }
@@ -474,9 +474,9 @@ uint8_t mfrc522_read_block(littleWire *lwHandle, uint8_t blockAddr, uint8_t *rec
 //    printf("read block #%d = %.2X %.4X\n", blockAddr, status, unLen);
 
     if ((status != CARD_FOUND) || (unLen != 0x90))
-        {
-            status = ERROR;
-        }
+    {
+        status = ERROR;
+    }
 
     return status;
 }
@@ -500,20 +500,20 @@ uint8_t mfrc522_select_tag(littleWire *lwHandle, uint8_t *serNum)
     buffer[0] = PICC_SElECTTAG;
     buffer[1] = 0x70;
     for (i=0; i<5; i++)
-        {
-            buffer[i+2] = *(serNum+i);
-        }
+    {
+        buffer[i+2] = *(serNum+i);
+    }
     mfrc522_calculateCRC(lwHandle,buffer, 7, &buffer[7]);		//??
     status = mfrc522_to_card(lwHandle,PCD_TRANSCEIVE, buffer, 9, buffer, &recvBits);
 
     if ((status == CARD_FOUND) && (recvBits == 0x18))
-        {
-            size = buffer[0];
-        }
+    {
+        size = buffer[0];
+    }
     else
-        {
-            size = 0;
-        }
+    {
+        size = 0;
+    }
 
     return size;
 }
