@@ -1,0 +1,11 @@
+*~
+PAM/*~
+PAM/*.h~
+PAM/*.c~
+PAM/*.o
+PAM/NFCMyAuth.so
+MyAuthGen/MyAuthGen
+MyAuthGen/*~
+MyAuthGen/*.h~
+MyAuthGen/*.c~
+MyAuthGen/*.o

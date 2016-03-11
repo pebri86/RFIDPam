@@ -1,23 +1,52 @@
 CC=gcc
-LD=ld
-CFLAGS =-fPIC -c
-LFLAGS =-x --shared -lcrypto -ldl
-OFILE=NFCMyAuth.so
-SECDIR=/lib/security/
 
-NFCMyAuth: 
-	@$(CC) $(CFLAGS) $@.c -o $@.o
-	@$(LD) -o $(OFILE) $(LFLAGS) $@.o
-	@if [ -f $(OFILE) ]; then \
-		echo "\nSuccessfully compiled, now run \"make install\" as root\n"; \
-	else \
-		echo "Unable to compile. Please check error logs"; \
-	fi
-	
+ifeq ($(shell uname), Linux)
+	USBFLAGS = `libusb-config --cflags`
+	USBLIBS = `libusb-config --libs`
+	EXE_SUFFIX =
+	OSFLAG = -D LINUX
+else ifeq ($(shell uname), Darwin)
+	USBFLAGS = `libusb-config --cflags`
+	USBLIBS = `libusb-config --libs`
+	EXE_SUFFIX =
+	OSFLAG = -D LINUX
+else
+	USBFLAGS = -I \include
+	USBLIBS = -L \lib -lusb
+	EXE_SUFFIX = .exe
+	OSFLAG = -D WIN
+endif
+
+LIBS    = $(USBLIBS)  -fPIC -shared -lcrypto -ldl
+INCLUDE = library
+CFLAGS  = $(USBFLAGS) $(LIBS) -I$(INCLUDE) -O -g $(OSFLAG)
+
+LWLIBS = littleWire littleWire_util littleWire_servo opendevice spi mfrc522
+SRCS = NFCMyAuth
+
+OFILE=NFCMyAuth.so
+SECDIR=/lib/x86_64-linux-gnu/security/
+
+.PHONY:	clean library docs
+
+all: library $(SRCS)
+
+library: $(LWLIBS)
+
+$(LWLIBS):
+	@echo Building library: $@...
+	$(CC) $(CFLAGS) -c library/$@.c 
+
+$(SRCS): $(addsuffix .o, $(LWLIBS))
+	@echo Building execurable: $@...
+	$(CC) $(CFLAGS) -o $@$(EXE_SUFFIX).so src/$@.c $^ $(LIBS)
+
+docs:
+	doxygen ./docs/doxygen.conf
+	cd ./docs/latex/; make all
+
 clean:
-	@rm -f *.o
-	@rm -f *.so
-	@echo "Clean successful";
+	rm -rf $(SRCS)$(EXE_SUFFIX) *.o *.exe *.dSYM docs/html docs/latex
 
 install:
 	cp $(OFILE) $(SECDIR)
@@ -26,5 +55,4 @@ install:
 	else \
 		echo "Unable to install. Did you run as root?"; \
 	fi
-
 
