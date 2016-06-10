@@ -1,7 +1,7 @@
 NFC RFID Linux PAM
 =============
 
-This PAM module uses D-Logic RFID SDK binary
+This PAM module uses Littlewire with RFID MFRC522 module
 
 Steps to use this module:
 - Go to MyAuthGen
@@ -21,4 +21,4 @@ In my case, I use it in my Debian system with GDM desktop environment, so I have
 
 Now if you logout and try to login, even if you enter correct username/password, if you don't put RFID card on top of reader, you shouldn't be able to login.
 
-For more info: http://www.codeandsec.com/Linux-RFID-Pluggable-Authentication-Modules
+For more info: http://www.codeandsec.com/Linux-RFID-Pluggable-Authentication-Modules and http://littlewire.cc
